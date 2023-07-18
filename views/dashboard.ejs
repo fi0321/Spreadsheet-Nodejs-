@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/index.css">
+
+
+</head>
+
+<body>
+    <% ax = 1; %>
+    <%- include('partials/nav'); -%>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-2">
+
+            </div>
+            <div class="col-lg-8">
+                <div>
+                    <br>
+                    <h2 class="d-inline">Hello <%= r.user_name %></h2>
+                    <hr>
+
+                    <a href="/new-sheet" class="btn btn-success btn-lg d-inline-block">New Spreadsheet</a>
+                    <a href="/shared_sheets_dashboard" class="btn btn-info btn-lg d-inline-block">Check shared sheets</a>
+
+                    <br>
+                    <br>
+                    <%= //JSON.stringify(sheets)%>
+
+                    <% function getdmh(ts){ %>
+                    <% let dt = new Date(ts) %>
+                    <% let day = dt.getDay() %>
+                    <% let date = dt.getDate() %>
+                    <% let month = dt.getMonth() %>
+                    <% let year = dt.getFullYear() %>
+                    <% let week = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] %>
+                    <% let mon = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug","Sep", "Oct", "Now", "Dec"] %>
+                    <% return `${week[day-1]} ${date} ${mon[month]} ${year}` %>
+                    <% } %>
+
+
+                    <% function generateRand(len = 7) { %>
+                    <%     const digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f'] %>
+                    <%     let hexCode = "" %>
+                    <%     while (hexCode.length < len) { %>
+                    <%         hexCode += digits[Math.round(Math.random() * digits.length)] %>
+                    <%     } %>
+                    <%     return hexCode %>
+                    <% } %>
+
+
+                    <h3>Your private spreadsheets:</h3>
+                    <hr>
+                    <div>
+                        <div class="row">
+
+                            <% let sv = 0;sheets.forEach(function(e){ %>
+                            <% if(e.is_shared == "0"){ sv = 1;%>
+                            <div class="col-lg-4">
+                                <a class="s-link" href="/sheet/<%= e.id %>">
+                                    <div class="card s-card">
+                                        <span class="card-img-top w-100 text-center s-logo d-inline-block">
+                                            <i class="fas fa-table"></i>
+                                        </span>
+                                        <div class="card-body s-body">
+                                            <h5 class="card-title s-title black"><i
+                                                    class="fas fa-table"></i>&nbsp;<%= e.name %></h5>
+                                            <p class="card-text s-text d-inline-block black"><i
+                                                    class="fas fa-calendar-day"></i>&nbsp;Created
+                                                <%= getdmh(e.created_on) %></p>
+
+
+                                            <div class="dropdown d-inline-block float-right">
+                                                <a class="dropdown-toggle" type="button" id="dropdownMenuButton"
+                                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                </a>
+                                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+
+                                                    <% idx = generateRand(24) %>
+
+
+                                                    <!-- Button trigger modal -->
+                                                    <button type="button" class="dropdown-item" data-toggle="modal"
+                                                        data-target="#model-<%=idx%>">
+                                                        Rename sheet
+                                                    </button>
+
+
+                                                    <form action="/delete_sheet" class="d-inline-block w-100"
+                                                        method="post">
+                                                        <input type="text" name="id" class="hidden" value="<%= e.id %>">
+                                                        <input type="text" name="redirect" class="hidden"
+                                                            value="/dashboard">
+                                                        <input type="submit" class="dropdown-item" value="Delete">
+                                                    </form>
+
+                                                    <form action="/update_sheet_share" class="d-inline-block w-100"
+                                                        method="post">
+                                                        <input type="text" name="id" class="hidden" value="<%= e.id %>">
+                                                        <input type="text" name="is_shared" class="hidden"
+                                                            value="<%= (e.is_shared == '0')?1:0 %>">
+                                                        <input type="text" name="redirect" class="hidden"
+                                                            value="/dashboard">
+                                                        <input type="submit" class="dropdown-item"
+                                                            value="<%= (e.is_shared == '0')?'Set sheet as shared':'Set sheet as private' %>">
+                                                    </form>
+
+                                                </div>
+                                            </div>
+
+                                            <!-- Modal -->
+                                            <div class="modal fade" id="model-<%=idx%>" tabindex="-1" role="dialog"
+                                                aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+                                                <div class="modal-dialog" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="exampleModalLongTitle">
+                                                                Rename sheet</h5>
+                                                            <button type="button" class="close" data-dismiss="modal"
+                                                                aria-label="Close">
+                                                                <span aria-hidden="true">&times;</span>
+                                                            </button>
+                                                        </div>
+                                                        <form action="/update_sheet_name" method="post">
+                                                            <div class="modal-body">
+                                                                <input type="text" name="id" class="hidden"
+                                                                    value="<%= e.id %>">
+                                                                <input type="text" name="redirect" class="hidden"
+                                                                    value="/dashboard">
+                                                               <input type="text" class="form-control" name="name" placeholder="Enter new name" required>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary"
+                                                                    data-dismiss="modal">Close</button>
+                                                                <button type="submit" class="btn btn-primary">Save
+                                                                    changes</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                            
+
+                                        </div>
+
+
+                                    </div>
+                                </a>
+                            </div>
+                            <%}})%>
+
+                            <p class='text-center w-100 d-inline-block'>
+                                <%= (sv == 0)?"You don't seem to have any private spreadsheets. Try creating one!":""%>
+                            </p>
+
+                        </div>
+                    </div>
+                    <!-- <hr> -->
+                    <br>
+
+                </div>
+            </div>
+
+        </div>
+
+        <%- include('partials/scripts'); -%>
+
+        <script src="/js/index.js"></script>
+</body>
+
+</html>

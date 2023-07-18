@@ -1,0 +1,157 @@
+<!doctype html>
+<html>
+
+<head>
+
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/index.css">
+
+
+</head>
+
+<body>
+    <% ax = -1; %>
+    <%- include('partials/nav'); -%>
+    <div class="container">
+        <br><br>
+        <p><em>Tip: Save the spreadsheet to get additional options like <strong>Downloading, Printing, Plotting</strong> etc...</em></p>
+		   <p><em>Tip: Please hover over index cells for drop down menu which gives options to delete or add rows or columns</em></p>
+        <hr>
+        <br>
+        <input id="name" type="text" class="form-control name-input" placeholder="Enter spreadsheet name">
+        <div class="float-right">
+            <label for="is_shared">Shared: </label>
+            <input type="checkbox" name="is_shared" id="is_shared">
+        </div>
+        <hr>
+        <button id="save" class="btn btn-success">Save</button>
+        <div class="float-right">
+            <!-- <button id="download" class="btn btn-info">Download</button> -->
+            <span class="btn btn-info">
+                Upload from csv: <input class="btn" type="file" id="csv-upload">
+                <button class="btn btn-primary" id="set-csv">Set Data</button>
+            </span>
+
+            <a href="/dashboard" class="btn btn-danger">Discard</a>
+        </div>
+        <br>
+        <br>
+    </div>
+
+    <spread-sheet id="app-container"></spread-sheet>
+
+    <%- include('partials/scripts'); -%>
+
+    <script type="module">
+        import Spreadsheet from '/js/spreadsheets_web_component.js';
+
+        // let s = new Spreadsheet("#app", 10, 10);
+        let created_on = Date.now();
+
+        window.customElements.define('spread-sheet', Spreadsheet);
+        let s = document.querySelector('spread-sheet');
+
+        // console.log(s.getData())
+        console.log({s})
+
+        function sendData(data) {
+
+            console.log(data)
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", '/create_sheet', true);
+
+            //Send the proper header information along with the request
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+            xhr.onreadystatechange = function () { // Call a function when the state changes.
+                if (this.readyState === XMLHttpRequest.DONE) {
+                    if (this.status === 200) {
+                        console.log(this.response);
+                        alert("Saved sheet");
+                        window.location.href = `/sheet/${JSON.parse(this.response).id}`;
+
+                    } else {
+                        alert(this.response)
+                    }
+                }
+            }
+            xhr.send(JSON.stringify(data));
+        }
+
+        document.getElementById("save").addEventListener("click", function () {
+            let name = document.getElementById("name").value.trim()
+            let is_shared = document.getElementById("is_shared").checked ? 1 : 0;
+            let content = s.getData();
+
+            if (name == "" || name == null) {
+                alert("Please enter a valid name")
+                return false;
+            }
+
+            let data = {
+                name,
+                content: content,
+                is_shared,
+                created_on
+            }
+
+            console.log(data)
+
+            sendData(data)
+        })
+
+
+        // let s = new Spreadsheet("#app", 2, 2);
+
+        // document.getElementById("print").addEventListener("click", function (e) {
+        //     let d = s.getData()
+        //     document.getElementById("disp").innerHTML = "DATA: " + JSON.stringify(d)
+        //     let r = s.getFocusedRowData();
+        //     document.getElementById("disp").innerHTML += "<br>ROW: " + JSON.stringify(r)
+        //     let c = s.getFocusedColData();
+        //     document.getElementById("disp").innerHTML += "<br> COL: " + JSON.stringify(c)
+        // })
+
+        // document.getElementById("download").addEventListener("click", function (e) {
+        //     s.downloadDataAsCsv()
+        // })
+
+        // document.getElementById("csv-upload").addEventListener("change", function () {
+        //     let setCsv = document.getElementById('set-csv');
+        //     setCsv.classList.add("show")
+        //     setCsv.classList.remove("hide")
+        // })
+
+
+        document.getElementById("set-csv").addEventListener("click", function () {
+            let fileInput = document.getElementById('csv-upload');
+
+
+            var file = fileInput.files[0];
+
+            if (file) {
+                var textType = / *.csv$/;
+                // let s = file.name
+                if (file.name.match(textType)) {
+                    var reader = new FileReader();
+                    console.log("valid file")
+                    reader.onload = function (e) {
+                        s.setDataFromCSV(reader.result);
+                    }
+
+                    reader.readAsText(file);
+                } else {
+                    alert("File not supported!")
+                    console.log(file, { f: file.type.match(textType) })
+                }
+            } else {
+                console.log("no file", file)
+            }
+
+        })
+
+    </script>
+</body>
+
+</html>

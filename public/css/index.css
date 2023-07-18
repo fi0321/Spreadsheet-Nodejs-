@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
+body {
+    font-family: 'Roboto', Arial, Helvetica, sans-serif !important;
+    zoom: 1;
+}
+
+.code {
+    font-family: 'Roboto Mono', monospace !important;
+}
+
+.red {
+    color: red !important;
+}
+
+.unset-all {
+    all: unset !important;
+}
+
+.s-logo {
+    font-size: 40px;
+    background-color: rgb(156, 156, 156);
+    color: rgb(255, 255, 255);
+    text-align: center;
+    vertical-align: middle;
+    padding-top: 50px;
+    padding-bottom: 50px;
+}
+
+.s-link:hover {
+    text-decoration: none;
+}
+
+.s-body {
+    padding: 6px !important;
+    color: rgb(54, 54, 54) !important;
+}
+
+.s-card {
+    margin-bottom: 24px;
+}
+
+.s-card:hover {
+    border: 1px solid rgb(40, 120, 173) !important;
+}
+
+.s-title {
+    font-size: 14px !important;
+    padding: 0px !important;
+    margin-bottom: 6px !important;
+}
+
+.s-text {
+    font-size: 12px !important;
+}
+
+.name-input {
+    display: inline-block !important;
+    width: 300px !important;
+}
+
+.hidden {
+    display: none;
+}
+
+.black, .black:hover {
+    color: black !important
+}
+
+@media print {
+    @page {
+        margin: 0.5cm;
+    }
+    header, navbar, nav, div.container, th, footer {
+        display: none;
+    }
+}

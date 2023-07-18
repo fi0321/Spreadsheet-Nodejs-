@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/index.css">
+
+
+
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4">
+
+            </div>
+            <div class="col-lg-4">
+                <br>
+                <br>
+                <h3><a href="/">&lt;&lt;</a> Register</h3>
+                <hr>
+                <form action="/register" method="post">
+                    <div class="red code"><%= (typeof(e) == 'undefined')?"":e %></div>
+                    <input class="form-control" type="text" name="name" id="name" placeholder="Enter your name" required>
+                    <br>
+                    <input class="form-control" type="email" name="email" id="email" placeholder="Email" required>
+                    <br>
+                    <input class="form-control" type="password" name="password" id="password" placeholder="Password" required>
+                    <br>
+                    <!-- Is this an admin account: <input class=""type="checkbox" name="admin" id="admin"> -->
+                    <!-- <br> -->
+                    <!-- <br> -->
+                    <input class="btn btn-success" type="submit" value="Register">
+                    <br>
+                    <br>
+                    <div class="text-center"><a href="/login">Already have an account? Login</a></div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <%- include('partials/scripts'); -%>
+</body>
+
+</html>

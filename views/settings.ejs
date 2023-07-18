@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings and Information</title>
+
+    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+
+</head>
+
+<body>
+    <% ax = 2; %>
+    <%- include('partials/nav'); -%>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-2">
+
+            </div>
+            <div class="col-lg-8">
+                <div>
+                    <br>
+                    <h2 class="d-inline">Settings and Information</h2>
+
+                    <hr>
+                    <div class="red code"><%= (typeof(e) == 'undefined')?"":e %></div>
+                    <h5>Unique User Identification: </h5><span
+                        class="code"><code><%= (typeof(r) != 'undefined')?(r.uid):"-"%></code></span>
+                    <br><br>
+                    <h5>Email: </h5><span class="code"><code><%= (typeof(r) != 'undefined')?r.email:"-" %></code></span> <br><br>
+                    <h5>Account Type: </h5>
+                    <span class="code">
+                        <code><%= (typeof(r) != 'undefined')?((r.accType == 1)?"Admin user":"Normal user"):"-" %></code>
+                        <% if(typeof(r) != 'undefined'){%>
+                        <% if(r.accType == 1){ %>
+                        <br><a href="/admin">Open Admin Console</a>
+                        <% }} %>
+                    </span>
+                    <br><br>
+                    <h3>Actions: </h3>
+                    <ul>
+                        <li>
+                            <a href="/changePassword">Change Password</a>
+                        </li>
+                        <li>
+                            <form action="/deleteAccount" method="post">
+                                <input type="submit" class="btn btn-sm btn-danger" value="Delete Account">
+                            </form>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+
+        </div>
+
+        <%- include('partials/scripts'); -%>
+
+        <script src="/js/index.js"></script>
+</body>
+
+</html>

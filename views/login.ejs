@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/index.css">
+
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4">
+
+            </div>
+            <div class="col-lg-4">
+                <br>
+                <br>
+                <h3><a href="/">&lt;&lt;</a> Login</h3>
+                <hr>
+                <form action="/login" method="post">
+                    <div class="red code"><%= (typeof(e) == 'undefined')?"":e %></div>
+                    <input class="form-control" type="email" name="email" id="email" placeholder="Email" required>
+                    <br>
+                    <input class="form-control" type="password" name="password" id="password" placeholder="Password"
+                        required>
+                    <br>
+                    <input class="btn btn-success" type="submit" value="Login">
+                    <br>
+                    <br>
+                    <div class="text-center"><a href="/register">Don't have an account? Register</a></div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <%- include('partials/scripts'); -%>
+</body>
+
+</html>

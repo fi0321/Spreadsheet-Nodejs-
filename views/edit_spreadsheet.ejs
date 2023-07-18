@@ -1,0 +1,533 @@
+<!doctype html>
+<html>
+
+<head>
+
+    <title><%= rows[0].name%> - Spreadsheets</title>
+
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/index.css">
+
+
+
+</head>
+
+<body>
+    <% ax = -1; %>
+    <%- include('partials/nav'); -%>
+
+    <div class="container">
+        <br><br>
+		   <p><em>Tip: Save the spreadsheet to get additional options like <strong>Downloading, Printing, Plotting</strong> etc...</em></p>
+		   <p><em>Tip: Please hover over index cells for drop down menu which gives options to delete or add rows or columns</em></p>
+        <hr>
+        <br>
+        <input id="name" type="text" class="form-control name-input" placeholder="Enter spreadsheet name"
+            value="<%= rows[0].name %>">
+
+
+        <div class="float-righty d-inline-block">
+            <label for="is_shared">Shared: </label>
+            <input type="checkbox" name="is_shared" id="is_shared">
+        </div>
+
+        <div class="float-right">
+            <a href="/new-sheet" class="btn btn-success btn-lg d-inline-block">New Spreadsheet</a>
+        </div>
+
+        <hr>
+        <div class="zoom d-inline-block"> ZOOM:
+            <button id="zoom-in" class="btn btn-info">+</button>
+            <button id="zoom-out" class="btn btn-info">-</button>
+        </div>
+        <button id="save" class="btn btn-success">Save</button>
+        <button id="print" class="btn btn-info">Print</button>
+        <form action="/delete_sheet" class="d-inline-block" method="post">
+            <input type="text" name="id" id="id" class="hidden" value="<%= rows[0].id %>">
+            <input type="text" name="redirect" id="redirect" class="hidden" value="/dashboard">
+            <input type="submit" class="btn btn-danger" value="Delete">
+        </form>
+        <div class="float-right">
+
+
+
+            <button id="download" class="btn btn-info">Download</button>
+
+            <button id="plotter" type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+                Graph it!
+            </button>
+
+            <span class="btn btn-info">
+                Upload from csv: <input class="btn" type="file" id="csv-upload">
+                <button class="btn btn-primary" id="set-csv">Set Data</button>
+            </span>
+
+
+        </div>
+        <br>
+        <br>
+    </div>
+
+    <spread-sheet id="app-container"></spread-sheet>
+
+    <div class="modal fade " id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Plots</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p><em>Tip: To plot data from a specific row or a column. Select a row by double tapping on the
+                            row/column header and then click on <code>Graph it!</code> button</em></p>
+
+                    <div id="dynamic-canvas" class="w-100"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <%- include('partials/scripts'); -%>
+
+    <script src="/js/chart.js"></script>
+
+    <script type="module">
+        import Spreadsheet from '/js/spreadsheets_web_component.js';
+
+        window.customElements.define('spread-sheet', Spreadsheet);
+
+        let s = document.querySelector('spread-sheet');
+
+        let created_on = Date.now();
+        let sheet_id = "<%= rows[0].id %>";
+        let c = "<%= rows[0].content %>";
+
+        if (parseInt("<%= rows[0].is_shared %>") == 1) {
+            document.getElementById("is_shared").checked = true;
+        }
+
+        // c = c.replace(/&#34;/, '');
+        // c = c.replace(/&#34;$/, '');
+        c = c.replace(/&#34;/g, '"');
+        c = c.replace(/&lt;/g, '<')
+        c = c.replace(/&gt;/g, '>')
+        // c = c.replace(/\\/g, '');
+        console.log({ c, json: c.replace(/&#34;/g, '"') })
+        // console.log({ c, json: c.replace(/&lt;/g, '"') })
+        // console.log({ c, json: c.replace(/&gt;/g, '"') })
+
+        let dx = JSON.parse(c)
+        console.log({ dx })
+        s.setData(dx)
+
+        function sendData(data) {
+
+            console.log(data)
+
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", '/update_sheet', true);
+
+            //Send the proper header information along with the request
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+            xhr.onreadystatechange = function () { // Call a function when the state changes.
+                if (this.readyState === XMLHttpRequest.DONE) {
+                    if (this.status === 200) {
+                        console.log(this.response)
+                        alert("Saved sheet")
+                    } else {
+                        alert("Error saving sheet")
+                        console.log(this.response)
+                    }
+                }
+            }
+            xhr.send(JSON.stringify(data));
+        }
+
+        document.getElementById("save").addEventListener("click", function () {
+            let name = document.getElementById("name").value.trim()
+            let is_shared = document.getElementById("is_shared").checked ? 1 : 0;
+            let content = s.getData();
+
+            if (name == "" || name == null) {
+                alert("Please enter a valid name")
+                return false;
+            }
+
+            let data = {
+                id: sheet_id,
+                name,
+                content: content,
+                // content,
+                is_shared,
+                created_on
+            }
+
+            console.log(data)
+
+            sendData(data)
+        })
+
+
+        document.getElementById("download").addEventListener("click", function (e) {
+            let n = document.getElementById("name").value
+            s.downloadDataAsCsv(n)
+        })
+
+
+        // document.getElementById("csv-upload").addEventListener("change", function () {
+        //     let setCsv = document.getElementById('set-csv');
+        //     setCsv.classList.add("show")
+        //     setCsv.classList.remove("hide")
+        // })
+
+
+        document.getElementById("set-csv").addEventListener("click", function () {
+            let fileInput = document.getElementById('csv-upload');
+
+
+            let file = fileInput.files[0];
+
+            if (file) {
+                let textType = / *.csv$/;
+                // let s = file.name
+                if (file.name.match(textType)) {
+                    let reader = new FileReader();
+                    console.log("valid file")
+                    reader.onload = function (e) {
+                        s.setDataFromCSV(reader.result);
+                    }
+
+                    reader.readAsText(file);
+                } else {
+                    alert("File not supported!")
+                    console.log(file, { f: file.type.match(textType) })
+                }
+            } else {
+                console.log("no file", file)
+            }
+
+        })
+
+        function generateRandomHexCode(len = 7) {
+            const digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f']
+
+            let hexCode = ""
+
+            while (hexCode.length < len) {
+                hexCode += digits[Math.round(Math.random() * digits.length)]
+            }
+
+            return hexCode
+        }
+
+        function generateRandomColors(n) {
+            let colors = []
+            let i = 0;
+            while (i < n) {
+                let randomColor = "#000000".replace(/0/g, function () { return (~~(Math.random() * 16)).toString(16); });
+                colors.push(randomColor)
+
+                i++;
+            }
+            return colors;
+        }
+
+        function getLabelAtN(n) {
+            let abc = "abcdefghijklmnopqrstuvwxyz".toUpperCase().split("");
+            let result_s;
+            if (n < abc.length) {
+                result_s = `${abc[n]}`;
+            } else {
+                result_s = `${abc[(n) % 26]}${Math.floor((n) / 26)}`;
+            }
+
+            return result_s;
+        }
+
+        function generateLabels(n, type = "col") {
+            let abc = "abcdefghijklmnopqrstuvwxyz".toUpperCase().split("");
+            let labels = []
+            let i = 0;
+            if (type == "col") {
+                while (i < n) {
+                    if (i < abc.length) {
+                        labels.push(`${abc[i]}`);
+                    } else {
+                        labels.push(`${abc[(i) % 26]}${Math.floor((i) / 26)}`);
+                    }
+                    i++;
+                }
+            } else {
+                while (i < n) {
+                    labels.push(`${i + 1}`);
+                    i++;
+                }
+            }
+            return labels;
+        }
+
+        function sanatizeData(data) {
+            let sanitized_data = []
+            let child = [];
+            for (let i = 0; i < data.length; i++) {
+                let col = data[i];
+                child = [];
+                for (let j = 0; j < col.length; j++) {
+                    if (col[j] != "") {
+                        child.push(col[j])
+                    }
+                }
+
+                sanitized_data.push(child)
+            }
+
+            return sanitized_data
+        }
+
+
+        function invertData(data) {
+            let res = []
+            let child = [];
+
+            for (let i = 0; i < data[0].length; i++) {
+                child = [];
+                for (let j = 0; j < data.length; j++) {
+                    if (data[j][i] != null) {
+                        child.push(data[j][i])
+                    } else {
+                        child.push(0)
+                    }
+                }
+                res.push(child)
+            }
+
+            return res
+        }
+
+        function getDatasets() {
+            let data_x
+            if (s.focused && s.focusedCol != null) {
+                let d = s.getFocusedColDataAsNum();
+                data_x = {
+                    // labels: generateLabels(s.row_count, "row"),
+                    labels: generateLabels(s.row_count, "row"),
+                    datasets: [{
+                        label: "Focused Column",
+                        data: d,
+                        backgroundColor: generateRandomColors(s.row_count),
+                        // borderColor: generateRandomColors(s.row_count),
+                        fill: false,
+                    }]
+                }
+
+            } else if (s.focused && s.focusedRow != null) {
+                let d = s.getFocusedRowDataAsNum();
+                data_x = {
+                    labels: generateLabels(s.col_count),
+                    // labels: generateLabels(s.col_count),
+                    datasets: [{
+                        label: "Focused Row",
+                        data: d,
+                        backgroundColor: generateRandomColors(s.col_count),
+                        // borderColor: generateRandomColors(s.row_count),
+                        fill: false
+                    }]
+                }
+            } else {
+
+                let d = invertData(sanatizeData(s.getData()))
+
+                console.log({ data_345: s.getData() })
+                // let colors = generateRandomColors(s.col_count)
+                console.log({ data_from_sheet: d })
+                let ffds = []
+
+                let auto_labels = [];
+
+                for (let row = 0; row < d.length; row++) {
+                    let row_x = {
+                        // label: `Row ${row + 1}`,
+                        label: `${getLabelAtN(row)}`,
+                        data: [],
+                        backgroundColor: generateRandomColors(1).toString(),
+                        // borderColor: generateRandomColors(s.row_count),
+                        fill: false
+                    }
+                    let c = d[row];
+                    for (let col = 0; col < c.length; col++) {
+                        if (!isNaN(c[col])) {
+                            if (c[col] != "") {
+                                row_x.data.push(c[col])
+                            }
+                        }
+                        else {
+                            if (row == 0 && col == 0) {
+
+                            } else if (col == 0 && row != 0) {
+                                if (c[col] != "") {
+                                    row_x.label = c[col]
+                                }
+
+                                // if (c[col] != "") {
+                                    // auto_labels.push(c[col])
+                                // }
+                            } else if (col != 0 && row == 0) {
+                                if (c[col] != "") {
+                                    auto_labels.push(c[col])
+                                }
+
+                                // if (c[col] != "") {
+                                //     row_x.label = c[col]
+                                //     console.log("set Inner label")
+                                // }else{
+                                //     console.log(c[col], "label not set")
+                                // }
+                            }
+                        }
+                    }
+                    if (row_x.data.length > 0) {
+
+                        console.log({row_x: row_x})
+                        ffds.push(row_x)
+                    }
+                }
+
+                // for(let i=0;i<col;i++)
+
+                console.log({ ffds })
+                data_x = {
+                    // labels: generateLabels(s.col_count),
+                    labels: (auto_labels.length > 0) ? auto_labels : generateLabels(s.row_count, "row"),
+                    datasets: ffds,
+                }
+            }
+
+            return data_x
+        }
+        function runPlotter(ele) {
+            let dynamicCanvas = document.querySelector(ele);
+
+            dynamicCanvas.innerHTML += "";
+            dynamicCanvas.innerHTML = "";
+            // let id = generateRandomHexCode(24);
+
+            let canvas = document.createElement("canvas")
+            canvas.setAttribute("id", generateRandomHexCode(24))
+
+            let canvas2 = document.createElement("canvas")
+            canvas2.setAttribute("id", generateRandomHexCode(24))
+
+            let canvas3 = document.createElement("canvas")
+            canvas3.setAttribute("id", generateRandomHexCode(24))
+
+            let canvas4 = document.createElement("canvas")
+            canvas4.setAttribute("id", generateRandomHexCode(24))
+
+            // let canvas5 = document.createElement("canvas")
+            // canvas5.setAttribute("id", generateRandomHexCode(24))
+
+            // let canvas6 = document.createElement("canvas")
+            // canvas6.setAttribute("id", generateRandomHexCode(24))
+
+            dynamicCanvas.appendChild(canvas)
+            dynamicCanvas.appendChild(canvas2)
+            dynamicCanvas.appendChild(canvas3)
+            dynamicCanvas.appendChild(canvas4)
+            // dynamicCanvas.appendChild(canvas5)
+            // dynamicCanvas.appendChild(canvas6)
+
+
+            Chart.defaults.global.defaultFontFamily = "Lato";
+            Chart.defaults.global.defaultFontSize = 18;
+
+
+            let chart_data = getDatasets();
+
+            let doughnutChart = new Chart(canvas2, {
+                type: 'doughnut',
+                // type: 'pie',
+                data: chart_data
+            });
+
+            let options = {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                }
+            };
+
+            let barChart = new Chart(canvas, {
+                type: 'bar',
+                data: chart_data,
+                options: options
+            });
+
+            let lineChart = new Chart(canvas3, {
+                type: 'line',
+                data: chart_data,
+                options: {
+                    responsive: true,
+                }
+            });
+
+            let scatter = new Chart(canvas4, {
+                type: 'radar',
+                data: chart_data,
+                options: {
+                    responsive: true,
+                }
+            });
+
+        }
+
+        document.getElementById("plotter").addEventListener("click", function (e) {
+            runPlotter("#dynamic-canvas")
+        })
+
+        document.getElementById("print").addEventListener("click", function () {
+            window.print()
+        })
+
+        let zoomLevel = 1;
+        function zoomIn() {
+
+            zoomLevel += 0.1;
+            document.body.style.transform = `scale(${zoomLevel})`;
+            document.body.style.zoom = zoomLevel
+
+            // return false;
+        }
+
+        function zoomOut() {
+            zoomLevel -= 0.1;
+            document.body.style.transform = `scale(${zoomLevel})`;
+            document.body.style.zoom = zoomLevel
+            // return false;
+        }
+
+        document.getElementById("zoom-in").addEventListener("click", function () {
+            // alert("ok")
+            zoomIn();
+        })
+
+        document.getElementById("zoom-out").addEventListener("click", function () {
+            zoomOut();
+        })
+
+
+    </script>
+</body>
+
+</html>
